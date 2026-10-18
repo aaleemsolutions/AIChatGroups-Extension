@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "AI Chat Folders (Gemini, ChatGPT, Claude)",
   "version": "1.1.0",
-  "description": "Organize Google Gemini, ChatGPT, and Claude chats into hierarchical folders with multi-device Firefox Sync.",
+  "description": "Organize Google Gemini, ChatGPT, and Claude chats into hierarchical folders with multi-device cross-browser sync.",
   "author": "Abdul Aleem",
   "browser_specific_settings": {
     "gecko": {

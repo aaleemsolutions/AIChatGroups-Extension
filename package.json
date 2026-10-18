@@ -1,7 +1,7 @@
 {
   "name": "gemini-chat-folders-firefox",
   "version": "1.0.0",
-  "description": "Firefox extension for Google Gemini to organize chats into hierarchical folders with multi-device Firefox Sync.",
+  "description": "Organize Gemini, ChatGPT, and Claude chats into hierarchical folders with multi-device cross-browser sync.",
   "main": "background.js",
   "scripts": {
     "test": "node test/run-all-tests.js",
