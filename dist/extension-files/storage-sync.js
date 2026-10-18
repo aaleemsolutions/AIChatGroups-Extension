@@ -584,6 +584,101 @@
     }
 
     /**
+     * Reorder a folder relative to another folder ('before' or 'after')
+     * Supports reordering at root level or within subfolders.
+     */
+    async reorderFolder(draggedFolderId, targetFolderId, position = 'before') {
+      await this.init();
+      if (!draggedFolderId || !targetFolderId || draggedFolderId === targetFolderId) return;
+
+      const dragged = this.folders.get(draggedFolderId);
+      const target = this.folders.get(targetFolderId);
+      if (!dragged || !target) return;
+
+      // Prevent moving folder into its own descendant
+      if (this._isDescendant(draggedFolderId, targetFolderId)) {
+        console.warn('[AIChatFolders] Cannot move folder into or relative to its descendant');
+        return;
+      }
+
+      // 1. Remove dragged folder from previous parent or rootIds
+      if (dragged.parentId && this.folders.has(dragged.parentId)) {
+        const oldParent = this.folders.get(dragged.parentId);
+        if (oldParent.childrenIds) {
+          oldParent.childrenIds = oldParent.childrenIds.filter(id => id !== draggedFolderId);
+          await this._saveFolder(oldParent);
+        }
+      } else {
+        this.meta.rootIds = (this.meta.rootIds || []).filter(id => id !== draggedFolderId);
+      }
+
+      // 2. Adopt target folder's parent
+      const newParentId = target.parentId || null;
+      dragged.parentId = newParentId;
+
+      // 3. Insert into target's sibling list at appropriate index
+      if (newParentId && this.folders.has(newParentId)) {
+        const parent = this.folders.get(newParentId);
+        if (!parent.childrenIds) parent.childrenIds = [];
+        parent.childrenIds = parent.childrenIds.filter(id => id !== draggedFolderId);
+        const targetIdx = parent.childrenIds.indexOf(targetFolderId);
+        const insertIdx = position === 'after' 
+          ? (targetIdx >= 0 ? targetIdx + 1 : parent.childrenIds.length) 
+          : Math.max(0, targetIdx);
+        parent.childrenIds.splice(insertIdx, 0, draggedFolderId);
+        await this._saveFolder(parent);
+      } else {
+        if (!this.meta.rootIds) this.meta.rootIds = [];
+        this.meta.rootIds = this.meta.rootIds.filter(id => id !== draggedFolderId);
+        const targetIdx = this.meta.rootIds.indexOf(targetFolderId);
+        const insertIdx = position === 'after' 
+          ? (targetIdx >= 0 ? targetIdx + 1 : this.meta.rootIds.length) 
+          : Math.max(0, targetIdx);
+        this.meta.rootIds.splice(insertIdx, 0, draggedFolderId);
+        await this._saveMeta();
+      }
+
+      await this._saveFolder(dragged);
+      await this._updateLocalCache();
+      this._notifyListeners('reorder', this.getState());
+    }
+
+    /**
+     * Move a folder up or down among its current siblings or roots
+     */
+    async moveFolderStep(folderId, direction = 'up') {
+      await this.init();
+      const folder = this.folders.get(folderId);
+      if (!folder) return;
+
+      const parentId = folder.parentId;
+      if (parentId && this.folders.has(parentId)) {
+        const parent = this.folders.get(parentId);
+        const list = parent.childrenIds || [];
+        const idx = list.indexOf(folderId);
+        if (idx < 0) return;
+        const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+        if (targetIdx < 0 || targetIdx >= list.length) return;
+        list.splice(idx, 1);
+        list.splice(targetIdx, 0, folderId);
+        parent.childrenIds = list;
+        await this._saveFolder(parent);
+      } else {
+        const list = this.meta.rootIds || [];
+        const idx = list.indexOf(folderId);
+        if (idx < 0) return;
+        const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+        if (targetIdx < 0 || targetIdx >= list.length) return;
+        list.splice(idx, 1);
+        list.splice(targetIdx, 0, folderId);
+        this.meta.rootIds = list;
+        await this._saveMeta();
+      }
+      await this._updateLocalCache();
+      this._notifyListeners('reorder', this.getState());
+    }
+
+    /**
      * Move a folder into another folder as a child, or back to root
      */
     async moveFolder(folderId, targetParentId = null) {

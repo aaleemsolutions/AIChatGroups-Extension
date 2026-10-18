@@ -36,6 +36,9 @@
 
 body.dark-theme,
 [data-theme="dark"],
+[data-mode="dark"],
+html.dark,
+body.dark,
 .dark {
   --gcf-bg-folder: rgba(255, 255, 255, 0.04);
   --gcf-bg-hover: rgba(255, 255, 255, 0.08);
@@ -376,6 +379,16 @@ body.dark-theme,
   box-shadow: 0 0 10px rgba(26, 115, 232, 0.25);
 }
 
+.gcf-folder-row.gcf-drop-before > .gcf-folder-header {
+  border-top: 2px solid var(--gcf-accent, #3b82f6) !important;
+  background-color: rgba(59, 130, 246, 0.14) !important;
+}
+
+.gcf-folder-row.gcf-drop-after > .gcf-folder-header {
+  border-bottom: 2px solid var(--gcf-accent, #3b82f6) !important;
+  background-color: rgba(59, 130, 246, 0.14) !important;
+}
+
 .gcf-folder-row.gcf-drag-over > .gcf-folder-header {
   background-color: transparent !important;
 }
@@ -592,8 +605,18 @@ body.dark-theme,
   border-top: 2px solid var(--gcf-accent);
 }
 
+.gcf-mini-btn.gcf-chat-unfile:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: var(--gcf-text-primary);
+}
+
+.gcf-mini-btn.gcf-chat-delete:hover {
+  background: rgba(239, 68, 68, 0.18);
+  color: #ef4444;
+}
+
 /* ===================================================
-   Injected Folder Button on Native Gemini Chat Items
+   Injected Folder Button on Native Chats (Gemini, ChatGPT, Claude)
    =================================================== */
 
 .gcf-injected-folder-btn {
@@ -603,13 +626,14 @@ body.dark-theme,
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   color: var(--gcf-text-secondary);
   font-size: 13px;
-  margin-right: 2px;
+  margin-right: 4px;
+  flex-shrink: 0;
   transition: var(--gcf-transition);
 }
 
@@ -623,8 +647,26 @@ body.dark-theme,
   color: var(--gcf-accent);
 }
 
-/* Filed Chats Hidden mode in native 'All' list */
-gem-nav-list-item.gcf-filed-hidden {
+/* Subtle reveal on ChatGPT and Claude row hover */
+nav li .gcf-injected-folder-btn,
+nav [class*="group"] .gcf-injected-folder-btn,
+nav div[role="row"] .gcf-injected-folder-btn {
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease, background-color 0.15s ease;
+}
+
+nav li:hover .gcf-injected-folder-btn,
+nav [class*="group"]:hover .gcf-injected-folder-btn,
+nav div[role="row"]:hover .gcf-injected-folder-btn,
+nav li .gcf-injected-folder-btn.is-filed,
+nav [class*="group"] .gcf-injected-folder-btn.is-filed {
+  opacity: 1;
+}
+
+/* Filed Chats Hidden mode in native history list */
+gem-nav-list-item.gcf-filed-hidden,
+li.gcf-filed-hidden,
+.gcf-filed-hidden {
   display: none !important;
 }
 
@@ -691,6 +733,12 @@ body.dark-theme .gcf-dropdown-menu {
   background-color: var(--gcf-bg-active);
   font-weight: 500;
   color: var(--gcf-accent);
+}
+
+.gcf-menu-item.disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .gcf-menu-divider {
@@ -901,4 +949,120 @@ body.dark-theme .gcf-modal-box {
 @keyframes gcfFadeIn {
   from { opacity: 0; transform: scale(0.97); }
   to { opacity: 1; transform: scale(1); }
+}
+
+/* ===================================================
+   Active Target Folder Banner & Start Chat Controls
+   =================================================== */
+
+.gcf-pending-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: rgba(26, 115, 232, 0.12);
+  border: 1px solid rgba(26, 115, 232, 0.3);
+  border-radius: var(--gcf-radius-sm);
+  padding: 6px 10px;
+  margin: 4px 6px 8px 6px;
+  font-size: 11.5px;
+  color: var(--gcf-text-primary);
+  animation: gcfFadeIn 0.2s ease-out;
+}
+
+.gcf-pending-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.gcf-pending-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+  flex-shrink: 0;
+  animation: gcfPulse 1.8s infinite;
+}
+
+@keyframes gcfPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.7; }
+}
+
+.gcf-pending-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gcf-pending-text strong {
+  color: var(--gcf-accent);
+}
+
+.gcf-pending-cancel {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--gcf-text-secondary);
+  font-size: 11px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  transition: var(--gcf-transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gcf-pending-cancel:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: var(--gcf-text-primary);
+}
+
+.gcf-mini-btn.gcf-btn-start-chat:hover {
+  background: rgba(26, 115, 232, 0.16);
+  color: var(--gcf-accent);
+}
+
+.gcf-empty-start-link {
+  color: var(--gcf-accent);
+  cursor: pointer;
+  text-decoration: underline;
+  font-weight: 500;
+  margin-left: 3px;
+  transition: opacity 0.15s ease;
+}
+
+.gcf-empty-start-link:hover {
+  opacity: 0.8;
+}
+
+/* Toast Notification */
+.gcf-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 10001;
+  background: #1f2937;
+  color: #ffffff;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.28);
+  display: none;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gcf-toast.show {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
 }
