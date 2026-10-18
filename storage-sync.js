@@ -46,6 +46,8 @@
           hideFiledFromAll: false,
           autoCollapseOther: false,
           theme: 'auto',
+          sidebarMode: 'tabs',
+          activeTab: 'folders',
           defaultColor: DEFAULT_COLORS[0],
           defaultIcon: DEFAULT_ICONS[0]
         },
@@ -384,6 +386,29 @@
 
       await this._saveFolder(newFolder);
       return newFolder;
+    }
+
+    /**
+     * Create starter default folders for new users
+     */
+    async createDefaultFolders() {
+      await this.init();
+      const defaults = [
+        { name: 'Work & Projects', icon: '💼', color: '#3b82f6' },
+        { name: 'Coding & Dev', icon: '💻', color: '#10b981' },
+        { name: 'Research & Study', icon: '📚', color: '#8b5cf6' },
+        { name: 'Ideas & Notes', icon: '💡', color: '#f59e0b' }
+      ];
+      const created = [];
+      for (const def of defaults) {
+        // Prevent duplicate names
+        const exists = Array.from(this.folders.values()).some(f => f.name.toLowerCase() === def.name.toLowerCase());
+        if (!exists) {
+          const f = await this.createFolder(def);
+          created.push(f);
+        }
+      }
+      return created;
     }
 
     /**

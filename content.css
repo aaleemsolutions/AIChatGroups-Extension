@@ -61,6 +61,121 @@ body.dark-theme,
   transition: var(--gcf-transition);
 }
 
+/* ===================================================
+   Two-Tab Navigation Bar & Layout Controls
+   =================================================== */
+
+.gcf-tabs-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: var(--gcf-bg-folder);
+  border: 1px solid var(--gcf-border);
+  border-radius: 10px;
+  padding: 3px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: var(--gcf-transition);
+}
+
+.gcf-tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: none;
+  background: transparent;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--gcf-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.gcf-tab-btn:hover {
+  background-color: var(--gcf-bg-hover);
+  color: var(--gcf-text-primary);
+}
+
+.gcf-tab-btn.active {
+  background-color: var(--gcf-bg-active, rgba(66, 133, 244, 0.14));
+  color: var(--gcf-accent);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.gcf-tab-icon {
+  font-size: 13px;
+  display: inline-flex;
+}
+
+.gcf-tab-label {
+  font-size: 12px;
+}
+
+.gcf-tab-badge {
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.08);
+  color: var(--gcf-text-secondary);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+@media (prefers-color-scheme: dark) {
+  .gcf-tab-badge {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.gcf-tab-btn.active .gcf-tab-badge {
+  background: var(--gcf-accent);
+  color: #ffffff;
+}
+
+.gcf-layout-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  color: var(--gcf-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.gcf-layout-toggle-btn:hover {
+  background-color: var(--gcf-bg-hover);
+  color: var(--gcf-text-primary);
+}
+
+.gcf-mode-stacked .gcf-tabs-bar {
+  display: none !important;
+}
+
+/* Preserves DOM dimensions and Angular scroll bindings without destructive display:none */
+.gcf-native-hidden {
+  height: 0px !important;
+  max-height: 0px !important;
+  min-height: 0px !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 .gcf-section-header {
   display: flex;
   align-items: center;
@@ -582,6 +697,58 @@ body.dark-theme .gcf-dropdown-menu {
   height: 1px;
   background-color: var(--gcf-border);
   margin: 4px 0;
+}
+
+/* Search bar & Hierarchical list inside Folder Picker */
+.gcf-picker-search-box {
+  padding: 4px 6px 6px 6px;
+  position: relative;
+}
+
+.gcf-picker-search-input {
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--gcf-border);
+  background-color: var(--gcf-bg-folder);
+  color: var(--gcf-text-primary);
+  outline: none;
+  box-sizing: border-box;
+  font-family: inherit;
+  transition: var(--gcf-transition);
+}
+
+.gcf-picker-search-input:focus {
+  border-color: var(--gcf-accent);
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+}
+
+.gcf-picker-list {
+  max-height: 240px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 2px 0;
+}
+
+.gcf-subfolder-branch {
+  color: var(--gcf-text-secondary);
+  font-size: 11px;
+  opacity: 0.6;
+  margin-right: -2px;
+  display: inline-block;
+  user-select: none;
+}
+
+.gcf-parent-hint {
+  font-size: 10px;
+  color: var(--gcf-text-secondary);
+  opacity: 0.7;
+  margin-left: 6px;
+  white-space: nowrap;
 }
 
 /* Color & Icon Picker Grid */

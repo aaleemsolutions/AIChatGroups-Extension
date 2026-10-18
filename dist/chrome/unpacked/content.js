@@ -34,6 +34,7 @@
       startDomObserver();
       ensureCorrectPlacement();
       scanAndEnhanceNativeChats();
+      applyLayoutMode();
     } catch (err) {
       console.error('[GeminiChatFolders] Init error:', err);
     }
@@ -44,6 +45,7 @@
       console.log(`[GeminiChatFolders] Storage event: ${event}`);
       renderFolderTree();
       scanAndEnhanceNativeChats();
+      applyLayoutMode();
       updateSyncStatusIndicator();
     });
   }
@@ -200,34 +202,54 @@
     container.className = 'gcf-folders-section';
 
     container.innerHTML = `
-      <div class="gcf-section-header" id="gcf-section-toggle">
-        <div class="gcf-header-left">
-          <span class="gcf-section-chevron">▼</span>
-          <span class="gcf-section-title">Folders</span>
-          <span class="gcf-sync-pill" id="gcf-sync-status" title="Syncing across your devices via Firefox Sync">
-            <span class="gcf-sync-dot"></span> Sync
-          </span>
-        </div>
-        <div class="gcf-header-actions" onclick="event.stopPropagation()">
-          <button class="gcf-icon-btn" id="gcf-btn-search" title="Filter folders & chats">
-            <svg viewBox="0 0 24 24" width="15" height="15"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-          </button>
-          <button class="gcf-icon-btn" id="gcf-btn-add-folder" title="New Folder">
-            <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-          </button>
-          <button class="gcf-icon-btn" id="gcf-btn-settings" title="Settings & Options">
-            <svg viewBox="0 0 24 24" width="15" height="15"><path fill="currentColor" d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
-          </button>
-        </div>
+      <!-- Segmented Two-Tab Navigation Bar -->
+      <div class="gcf-tabs-bar" id="gcf-tabs-bar">
+        <button class="gcf-tab-btn active" id="gcf-tab-folders" data-tab="folders" title="View organized chat folders">
+          <span class="gcf-tab-icon">📁</span>
+          <span class="gcf-tab-label">Folders</span>
+          <span class="gcf-tab-badge" id="gcf-folders-badge">0</span>
+        </button>
+        <button class="gcf-tab-btn" id="gcf-tab-flat" data-tab="flat" title="View original flat recent chats">
+          <span class="gcf-tab-icon">💬</span>
+          <span class="gcf-tab-label">Recent</span>
+          <span class="gcf-tab-badge" id="gcf-chats-badge">0</span>
+        </button>
+        <button class="gcf-layout-toggle-btn" id="gcf-btn-layout-toggle" title="Switch layout mode (Tabs / Stacked)">
+          <svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M3 3h18v2H3V3zm0 4h8v14H3V7zm10 0h8v14h-8V7z"/></svg>
+        </button>
       </div>
 
-      <div class="gcf-search-container" id="gcf-search-box" style="display: none;">
-        <input type="text" class="gcf-search-input" id="gcf-search-field" placeholder="Search chats in folders..." />
-        <button class="gcf-search-clear" id="gcf-search-clear-btn">✕</button>
-      </div>
+      <!-- Folders Container -->
+      <div class="gcf-folders-container" id="gcf-folders-container">
+        <div class="gcf-section-header" id="gcf-section-toggle">
+          <div class="gcf-header-left">
+            <span class="gcf-section-chevron">▼</span>
+            <span class="gcf-section-title">Folders</span>
+            <span class="gcf-sync-pill" id="gcf-sync-status" title="Syncing across your devices">
+              <span class="gcf-sync-dot"></span> Sync
+            </span>
+          </div>
+          <div class="gcf-header-actions" onclick="event.stopPropagation()">
+            <button class="gcf-icon-btn" id="gcf-btn-search" title="Filter folders & chats">
+              <svg viewBox="0 0 24 24" width="15" height="15"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+            </button>
+            <button class="gcf-icon-btn" id="gcf-btn-add-folder" title="New Folder">
+              <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            </button>
+            <button class="gcf-icon-btn" id="gcf-btn-settings" title="Settings & Layout Options">
+              <svg viewBox="0 0 24 24" width="15" height="15"><path fill="currentColor" d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+            </button>
+          </div>
+        </div>
 
-      <div class="gcf-folders-body" id="gcf-folders-tree">
-        <!-- Folders rendered here -->
+        <div class="gcf-search-container" id="gcf-search-box" style="display: none;">
+          <input type="text" class="gcf-search-input" id="gcf-search-field" placeholder="Search chats in folders..." />
+          <button class="gcf-search-clear" id="gcf-search-clear-btn">✕</button>
+        </div>
+
+        <div class="gcf-folders-body" id="gcf-folders-tree">
+          <!-- Folders rendered here -->
+        </div>
       </div>
     `;
 
@@ -246,10 +268,39 @@
 
     setupContainerEvents(container);
     renderFolderTree();
+    applyLayoutMode();
   }
 
   function setupContainerEvents(container) {
-    // Toggle Folders Section collapse
+    // Tabs Navigation Events
+    const tabFolders = container.querySelector('#gcf-tab-folders');
+    const tabFlat = container.querySelector('#gcf-tab-flat');
+    const layoutToggleBtn = container.querySelector('#gcf-btn-layout-toggle');
+
+    if (tabFolders) {
+      tabFolders.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await storage.updateSettings({ activeTab: 'folders' });
+        applyLayoutMode();
+      });
+    }
+
+    if (tabFlat) {
+      tabFlat.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await storage.updateSettings({ activeTab: 'flat' });
+        applyLayoutMode();
+      });
+    }
+
+    if (layoutToggleBtn) {
+      layoutToggleBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await toggleLayoutMode();
+      });
+    }
+
+    // Toggle Folders Section collapse (inside Folders view)
     const toggleHeader = container.querySelector('#gcf-section-toggle');
     const foldersTree = container.querySelector('#gcf-folders-tree');
     
@@ -308,6 +359,134 @@
     });
   }
 
+  /**
+   * Applies the current layout mode (Tabs vs Stacked) and active tab
+   */
+  function applyLayoutMode() {
+    const root = document.getElementById('gcf-root');
+    if (!root) return;
+
+    const settings = storage.meta.settings || {};
+    const mode = settings.sidebarMode || 'tabs'; // 'tabs' or 'stacked'
+    const activeTab = settings.activeTab || 'folders'; // 'folders' or 'flat'
+
+    const tabsBar = root.querySelector('#gcf-tabs-bar');
+    const foldersContainer = root.querySelector('#gcf-folders-container');
+    const btnFolders = root.querySelector('#gcf-tab-folders');
+    const btnFlat = root.querySelector('#gcf-tab-flat');
+    const layoutToggleBtn = root.querySelector('#gcf-btn-layout-toggle');
+    const chatsSection = findChatsSection();
+    const divider = document.querySelector('.gcf-injected-divider');
+
+    root.classList.toggle('gcf-mode-tabs', mode === 'tabs');
+    root.classList.toggle('gcf-mode-stacked', mode === 'stacked');
+
+    if (mode === 'stacked') {
+      if (tabsBar) tabsBar.style.display = 'none';
+      if (foldersContainer) foldersContainer.style.display = isSectionCollapsed ? 'none' : 'block';
+      if (chatsSection) {
+        chatsSection.classList.remove('gcf-native-hidden');
+        chatsSection.style.display = '';
+      }
+      if (divider) divider.style.display = '';
+    } else {
+      // Tabs mode
+      if (tabsBar) tabsBar.style.display = 'flex';
+      if (btnFolders) btnFolders.classList.toggle('active', activeTab === 'folders');
+      if (btnFlat) btnFlat.classList.toggle('active', activeTab === 'flat');
+
+      if (layoutToggleBtn) {
+        layoutToggleBtn.title = 'Current: Tabs View. Click to switch to Stacked View.';
+      }
+
+      if (activeTab === 'folders') {
+        if (foldersContainer) foldersContainer.style.display = isSectionCollapsed ? 'none' : 'block';
+        if (chatsSection) {
+          chatsSection.classList.add('gcf-native-hidden');
+        }
+        if (divider) divider.style.display = 'none';
+      } else {
+        // Flat / Recent chats tab
+        if (foldersContainer) foldersContainer.style.display = 'none';
+        if (chatsSection) {
+          chatsSection.classList.remove('gcf-native-hidden');
+          chatsSection.style.display = '';
+        }
+        if (divider) divider.style.display = 'none';
+
+        // Re-dispatch resize and scroll events so Angular / Gemini re-evaluates viewport and triggers infinite scroll
+        requestAnimationFrame(() => {
+          window.dispatchEvent(new Event('resize'));
+          if (chatsSection) {
+            const scroller = chatsSection.closest('[scrollable], .side-nav-scroller, .chat-history-scroller') || chatsSection.parentElement;
+            if (scroller) {
+              scroller.dispatchEvent(new Event('scroll', { bubbles: true }));
+            }
+          }
+        });
+      }
+    }
+
+    setupInfiniteScrollWatcher();
+    updateBadges();
+  }
+
+  /**
+   * Ensures Gemini's infinite scroll fires continuously when scrolling down
+   */
+  function setupInfiniteScrollWatcher() {
+    const chatsSection = findChatsSection();
+    if (!chatsSection) return;
+
+    const scroller = chatsSection.closest('.side-nav-scroller, [scrollable], bard-sidenav-content') || chatsSection.parentElement;
+    if (!scroller || scroller._gcfInfiniteWatcher) return;
+    scroller._gcfInfiniteWatcher = true;
+
+    scroller.addEventListener('scroll', () => {
+      // Check if user is scrolled near bottom
+      const distanceToBottom = scroller.scrollHeight - (scroller.scrollTop + scroller.clientHeight);
+      if (distanceToBottom < 350) {
+        // Find any loading sentinel or trigger in Gemini's DOM
+        const sentinel = chatsSection.querySelector('.bottom-sentinel, [data-test-id="loading-indicator"], .infinite-scroll-bottom, button[data-test-id="show-more"]');
+        if (sentinel) {
+          sentinel.scrollIntoView({ block: 'nearest' });
+          if (typeof sentinel.click === 'function') sentinel.click();
+        }
+      }
+    }, { passive: true });
+  }
+
+  function updateBadges() {
+    const root = document.getElementById('gcf-root');
+    if (!root) return;
+    const foldersBadge = root.querySelector('#gcf-folders-badge');
+    const chatsBadge = root.querySelector('#gcf-chats-badge');
+
+    if (foldersBadge) {
+      foldersBadge.textContent = storage.folders.size;
+    }
+
+    if (chatsBadge) {
+      const nativeItems = document.querySelectorAll(
+        'gem-nav-list-item[data-test-id="conversation"], ' +
+        'conversations-list a, ' +
+        'nav[aria-label="Chat history"] a'
+      );
+      let count = 0;
+      nativeItems.forEach(item => {
+        if (!item.closest('#gcf-root')) count++;
+      });
+      chatsBadge.textContent = count > 0 ? count : (storage.folders.size > 0 ? '•' : '0');
+    }
+  }
+
+  async function toggleLayoutMode() {
+    const currentMode = storage.meta.settings?.sidebarMode || 'tabs';
+    const newMode = currentMode === 'tabs' ? 'stacked' : 'tabs';
+    await storage.updateSettings({ sidebarMode: newMode });
+    applyLayoutMode();
+  }
+
   // ========================================================
   // Folder Tree Rendering
   // ========================================================
@@ -336,6 +515,15 @@
       createBtn.textContent = '+ Create Folder';
       createBtn.addEventListener('click', () => showCreateFolderModal());
 
+      const defaultFoldersBtn = document.createElement('button');
+      defaultFoldersBtn.className = 'gcf-empty-btn';
+      defaultFoldersBtn.id = 'gcf-empty-defaults-btn';
+      defaultFoldersBtn.style.cssText = 'background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: var(--gcf-text-primary, #e2e8f0); cursor: pointer;';
+      defaultFoldersBtn.textContent = '✨ Starter Folders';
+      defaultFoldersBtn.addEventListener('click', async () => {
+        await storage.createDefaultFolders();
+      });
+
       const importBtn = document.createElement('button');
       importBtn.className = 'gcf-empty-btn';
       importBtn.id = 'gcf-empty-import-btn';
@@ -343,7 +531,7 @@
       importBtn.textContent = '📥 Import Backup';
       importBtn.addEventListener('click', () => showImportModal());
 
-      btnsRow.append(createBtn, importBtn);
+      btnsRow.append(createBtn, defaultFoldersBtn, importBtn);
       emptyDiv.append(textDiv, btnsRow);
       treeElem.appendChild(emptyDiv);
       return;
@@ -879,14 +1067,18 @@
   /**
    * Popup picker to assign a chat to any folder
    */
+  /**
+   * Popup picker to assign a chat to any folder (Hierarchical tree + instant search)
+   */
   function showChatFolderPicker(chatId, title, url, anchorElem) {
     closeActiveDropdown();
 
     const rect = anchorElem.getBoundingClientRect();
     const dropdown = document.createElement('div');
     dropdown.className = 'gcf-dropdown-menu';
-    dropdown.style.top = `${Math.min(window.innerHeight - 300, rect.bottom + 4)}px`;
-    dropdown.style.left = `${Math.min(window.innerWidth - 220, rect.left - 100)}px`;
+    dropdown.style.width = '240px';
+    dropdown.style.top = `${Math.min(window.innerHeight - 340, rect.bottom + 4)}px`;
+    dropdown.style.left = `${Math.min(window.innerWidth - 260, Math.max(10, rect.left - 110))}px`;
 
     const currentFolder = storage.getChatFolder(chatId);
 
@@ -894,6 +1086,16 @@
     headerTitle.className = 'gcf-menu-header';
     headerTitle.textContent = 'Organize into Folder';
     dropdown.appendChild(headerTitle);
+
+    // Instant Search Input
+    const searchBox = document.createElement('div');
+    searchBox.className = 'gcf-picker-search-box';
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.className = 'gcf-picker-search-input';
+    searchInput.placeholder = 'Search folders...';
+    searchBox.appendChild(searchInput);
+    dropdown.appendChild(searchBox);
 
     if (currentFolder) {
       const unfileItem = document.createElement('div');
@@ -904,6 +1106,11 @@
       const labelSpan = document.createElement('span');
       labelSpan.textContent = `Remove from "${currentFolder.name}"`;
       unfileItem.append(xSpan, labelSpan);
+      unfileItem.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await storage.removeChatFromFolder(currentFolder.id, chatId);
+        closeActiveDropdown();
+      });
       dropdown.appendChild(unfileItem);
 
       const d = document.createElement('div');
@@ -911,22 +1118,78 @@
       dropdown.appendChild(d);
     }
 
-    if (storage.folders.size === 0) {
-      const emptyItem = document.createElement('div');
-      emptyItem.className = 'gcf-menu-item';
-      emptyItem.style.color = 'var(--gcf-text-secondary)';
-      emptyItem.style.cursor = 'default';
-      emptyItem.textContent = 'No folders created yet';
-      dropdown.appendChild(emptyItem);
-    } else {
-      for (const folder of storage.folders.values()) {
+    // Scrollable list container for folders
+    const listContainer = document.createElement('div');
+    listContainer.className = 'gcf-picker-list';
+    dropdown.appendChild(listContainer);
+
+    function renderPickerFolders(query = '') {
+      listContainer.replaceChildren();
+      const lowerQuery = query.toLowerCase().trim();
+
+      // Collect folders in hierarchical order
+      const items = [];
+      function walk(folderId, depth = 0, parentName = '') {
+        const folder = storage.folders.get(folderId);
+        if (!folder) return;
+
+        const matches = !lowerQuery || 
+          folder.name.toLowerCase().includes(lowerQuery) || 
+          (parentName && parentName.toLowerCase().includes(lowerQuery));
+
+        if (matches) {
+          items.push({ folder, depth, parentName });
+        }
+
+        if (folder.childrenIds && Array.isArray(folder.childrenIds)) {
+          for (const cid of folder.childrenIds) {
+            walk(cid, depth + 1, folder.name);
+          }
+        }
+      }
+
+      const rootIds = storage.meta.rootIds || [];
+      for (const rid of rootIds) {
+        walk(rid, 0, '');
+      }
+
+      // Add any unlisted/orphan root folders
+      for (const [id, f] of storage.folders.entries()) {
+        if (!f.parentId && !rootIds.includes(id)) {
+          walk(id, 0, '');
+        }
+      }
+
+      if (items.length === 0) {
+        const emptyItem = document.createElement('div');
+        emptyItem.className = 'gcf-menu-item';
+        emptyItem.style.color = 'var(--gcf-text-secondary)';
+        emptyItem.style.cursor = 'default';
+        emptyItem.textContent = storage.folders.size === 0 ? 'No folders created yet' : 'No matching folders';
+        listContainer.appendChild(emptyItem);
+        return;
+      }
+
+      for (const { folder, depth, parentName } of items) {
         const isCurrent = currentFolder && currentFolder.id === folder.id;
         const item = document.createElement('div');
         item.className = `gcf-menu-item${isCurrent ? ' active' : ''}`;
         item.dataset.folderId = folder.id;
 
+        // Visual hierarchical tree indentation
+        if (depth > 0) {
+          item.style.paddingLeft = `${10 + depth * 14}px`;
+          const branchSpan = document.createElement('span');
+          branchSpan.className = 'gcf-subfolder-branch';
+          branchSpan.textContent = '↳ ';
+          item.appendChild(branchSpan);
+        }
+
         const iconSpan = document.createElement('span');
         iconSpan.textContent = folder.icon || '📁';
+        if (folder.color) {
+          iconSpan.style.color = folder.color;
+        }
 
         const nameSpan = document.createElement('span');
         nameSpan.style.flex = '1';
@@ -936,14 +1199,50 @@
         nameSpan.textContent = folder.name;
 
         item.append(iconSpan, nameSpan);
+
+        if (depth > 0 && parentName && lowerQuery) {
+          const hintSpan = document.createElement('span');
+          hintSpan.className = 'gcf-parent-hint';
+          hintSpan.textContent = `(${parentName})`;
+          item.appendChild(hintSpan);
+        }
+
         if (isCurrent) {
           const check = document.createElement('span');
           check.textContent = '✓';
+          check.style.color = 'var(--gcf-accent)';
+          check.style.fontWeight = 'bold';
           item.appendChild(check);
         }
-        dropdown.appendChild(item);
+
+        item.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          await storage.addChatToFolder(folder.id, { id: chatId, title, url });
+          closeActiveDropdown();
+        });
+
+        listContainer.appendChild(item);
       }
     }
+
+    renderPickerFolders('');
+
+    // Search input events
+    searchInput.addEventListener('input', (e) => {
+      renderPickerFolders(e.target.value);
+    });
+
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const firstMatch = listContainer.querySelector('.gcf-menu-item[data-folder-id]');
+        if (firstMatch) {
+          firstMatch.click();
+        }
+      } else if (e.key === 'Escape') {
+        closeActiveDropdown();
+      }
+    });
 
     const d2 = document.createElement('div');
     d2.className = 'gcf-menu-divider';
@@ -957,38 +1256,22 @@
     const newTextSpan = document.createElement('span');
     newTextSpan.textContent = 'New Folder...';
     newFolderItem.append(plusSpan, newTextSpan);
+    newFolderItem.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeActiveDropdown();
+      showCreateFolderModal(null, null, { chatId, title, url });
+    });
     dropdown.appendChild(newFolderItem);
 
     document.body.appendChild(dropdown);
     activeDropdown = dropdown;
 
-    // Click handlers
-    dropdown.querySelectorAll('.gcf-menu-item[data-folder-id]').forEach(item => {
-      item.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        const targetFolderId = item.dataset.folderId;
-        await storage.addChatToFolder(targetFolderId, { id: chatId, title, url });
-        closeActiveDropdown();
-      });
-    });
-
-    const unfileBtn = dropdown.querySelector('#gcf-picker-unfile');
-    if (unfileBtn) {
-      unfileBtn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        await storage.removeChatFromFolder(currentFolder.id, chatId);
-        closeActiveDropdown();
-      });
-    }
-
-    const newFolderBtn = dropdown.querySelector('#gcf-picker-new-folder');
-    if (newFolderBtn) {
-      newFolderBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        closeActiveDropdown();
-        showCreateFolderModal(null, null, { chatId, title, url });
-      });
-    }
+    // Focus search input automatically
+    setTimeout(() => {
+      if (searchInput && document.body.contains(searchInput)) {
+        searchInput.focus();
+      }
+    }, 60);
   }
 
   /**
@@ -1097,7 +1380,14 @@
       return d;
     };
 
+    const currentMode = settings.sidebarMode || 'tabs';
+    const layoutLabel = currentMode === 'tabs' ? 'Layout: Tabs (Switch to Stacked)' : 'Layout: Stacked (Switch to Tabs)';
+    const layoutIcon = currentMode === 'tabs' ? '📑' : '🗂️';
+
     dropdown.append(
+      createMenuItem('gcf-opt-layout', layoutIcon, layoutLabel),
+      createMenuItem('gcf-opt-starter-folders', '✨', 'Create Starter Default Folders'),
+      divider(),
       createMenuItem('gcf-opt-hide-filed', settings.hideFiledFromAll ? '☑' : '☐', 'Hide filed chats from "All"'),
       createMenuItem('gcf-opt-collapse-all', '📁', 'Collapse All Folders'),
       createMenuItem('gcf-opt-expand-all', '📂', 'Expand All Folders'),
@@ -1108,6 +1398,18 @@
 
     document.body.appendChild(dropdown);
     activeDropdown = dropdown;
+
+    // Toggle layout mode
+    dropdown.querySelector('#gcf-opt-layout').addEventListener('click', async () => {
+      closeActiveDropdown();
+      await toggleLayoutMode();
+    });
+
+    // Create starter folders
+    dropdown.querySelector('#gcf-opt-starter-folders').addEventListener('click', async () => {
+      closeActiveDropdown();
+      await storage.createDefaultFolders();
+    });
 
     // Toggle hide filed
     dropdown.querySelector('#gcf-opt-hide-filed').addEventListener('click', async () => {
