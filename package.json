@@ -1,0 +1,30 @@
+{
+  "name": "gemini-chat-folders-firefox",
+  "version": "1.0.0",
+  "description": "Firefox extension for Google Gemini to organize chats into hierarchical folders with multi-device Firefox Sync.",
+  "main": "background.js",
+  "scripts": {
+    "test": "node test/run-all-tests.js",
+    "test:unit": "node test/storage-sync.test.js",
+    "test:dom": "node test/dom-integration.test.js",
+    "build": "node scripts/build-xpi.js",
+    "open:test-harness": "powershell -Command \"Start-Process 'C:\\Program Files\\Mozilla Firefox\\firefox.exe' -ArgumentList 'file:///C:/Users/TechShop/.gemini/antigravity-ide/scratch/gemini-chat-folders-firefox/test/gemini-mock.html'\""
+  },
+  "keywords": [
+    "gemini",
+    "firefox-addon",
+    "webextension",
+    "folders",
+    "chat-folders",
+    "firefox-sync"
+  ],
+  "author": "Abdul Aleem <aleemksolutions@gmail.com>",
+  "bugs": {
+    "url": "mailto:aleemksolutions@gmail.com"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "adm-zip": "^0.6.1",
+    "jsdom": "^26.0.0"
+  }
+}

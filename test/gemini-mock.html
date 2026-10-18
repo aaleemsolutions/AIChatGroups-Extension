@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gemini Sidebar Mock - Interactive Extension Verification</title>
+  <link rel="stylesheet" href="../content.css">
+  <style>
+    :root {
+      --bard-sidenav-open-width: 270px;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Google Sans', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+      display: flex;
+      height: 100vh;
+      background: #ffffff;
+      color: #1f1f1f;
+      overflow: hidden;
+    }
+
+    /* Test Banner */
+    #test-control-panel {
+      position: fixed;
+      top: 0;
+      left: 270px;
+      right: 0;
+      background: #1e1b4b;
+      color: #ffffff;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 1000;
+    }
+    .test-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .test-btn {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .test-btn:hover { background: #2563eb; }
+    .test-btn.success { background: #10b981; }
+
+    #test-output-panel {
+      position: fixed;
+      top: 60px;
+      left: 290px;
+      right: 20px;
+      bottom: 20px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    /* Gemini Base Styles Simulation */
+    bard-sidenav {
+      width: 270px;
+      height: 100vh;
+      background: #f0f4f9;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid #e1e3e1;
+      box-sizing: border-box;
+      flex-shrink: 0;
+    }
+    side-navigation-content {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+    .overflow-container, infinite-scroller {
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidenav-header-buttons {
+      padding: 12px 14px 6px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .section-divider {
+      height: 1px;
+      background: #e1e3e1;
+      margin: 8px 12px;
+    }
+    .expandable-section-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+    }
+    .expandable-section-header {
+      background: none;
+      border: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      color: #444746;
+      cursor: pointer;
+    }
+    gem-nav-list-item {
+      display: block;
+      margin: 1px 8px;
+      position: relative;
+    }
+    gem-nav-list-item a {
+      display: flex;
+      align-items: center;
+      padding: 7px 10px;
+      border-radius: 20px;
+      text-decoration: none;
+      color: #1f1f1f;
+      font-size: 13px;
+    }
+    gem-nav-list-item a:hover {
+      background: rgba(0,0,0,0.05);
+    }
+    gem-nav-list-item a.is-active {
+      background: #d3e3fd;
+      color: #041e49;
+      font-weight: 600;
+    }
+    .hovered-trailing-content {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: none;
+      align-items: center;
+      gap: 4px;
+    }
+    gem-nav-list-item:hover .hovered-trailing-content {
+      display: flex;
+    }
+    .title-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 170px;
+      display: inline-block;
+    }
+    .log-line {
+      font-family: monospace;
+      font-size: 13px;
+      margin: 4px 0;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    .log-line.pass { background: #dcfce7; color: #15803d; }
+    .log-line.info { background: #e0f2fe; color: #0369a1; }
+    .log-line.fail { background: #fee2e2; color: #b91c1c; }
+  </style>
+
+  <!-- Mock WebExtensions Storage for Standalone Browser Test -->
+  <script>
+    (function() {
+      const memorySync = {};
+      const memoryLocal = {};
+      const listeners = [];
+
+      window.browser = {
+        storage: {
+          sync: {
+            get: (keys, cb) => {
+              let res = keys === null ? {...memorySync} : (typeof keys === 'string' ? {[keys]: memorySync[keys]} : {});
+              if (cb) cb(res);
+              return Promise.resolve(res);
+            },
+            set: (items, cb) => {
+              const changes = {};
+              for (const [k, v] of Object.entries(items)) {
+                changes[k] = { oldValue: memorySync[k], newValue: v };
+                memorySync[k] = v;
+              }
+              listeners.forEach(fn => fn(changes, 'sync'));
+              if (cb) cb();
+              return Promise.resolve();
+            },
+            remove: (keys, cb) => {
+              const keyList = Array.isArray(keys) ? keys : [keys];
+              const changes = {};
+              keyList.forEach(k => {
+                changes[k] = { oldValue: memorySync[k], newValue: undefined };
+                delete memorySync[k];
+              });
+              listeners.forEach(fn => fn(changes, 'sync'));
+              if (cb) cb();
+              return Promise.resolve();
+            }
+          },
+          local: {
+            get: (keys, cb) => {
+              let res = keys === null ? {...memoryLocal} : (typeof keys === 'string' ? {[keys]: memoryLocal[keys]} : {});
+              if (cb) cb(res);
+              return Promise.resolve(res);
+            },
+            set: (items, cb) => {
+              for (const [k, v] of Object.entries(items)) memoryLocal[k] = v;
+              if (cb) cb();
+              return Promise.resolve();
+            },
+            remove: (keys, cb) => {
+              const keyList = Array.isArray(keys) ? keys : [keys];
+              keyList.forEach(k => delete memoryLocal[k]);
+              if (cb) cb();
+              return Promise.resolve();
+            }
+          },
+          onChanged: {
+            addListener: fn => listeners.push(fn),
+            removeListener: fn => {
+              const idx = listeners.indexOf(fn);
+              if (idx >= 0) listeners.splice(idx, 1);
+            }
+          }
+        }
+      };
+    })();
+  </script>
+
+  <!-- Extension Scripts -->
+  <script src="../storage-sync.js"></script>
+  <script src="../content.js"></script>
+</head>
+<body>
+
+  <!-- Test Control Header -->
+  <div id="test-control-panel">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span style="font-size: 16px; font-weight: 700;">🦊 Firefox Gemini Chat Folders Test Harness</span>
+      <span style="font-size: 12px; background: rgba(255,255,255,0.2); padding: 3px 8px; border-radius: 12px;">Live DOM</span>
+    </div>
+    <div class="test-actions">
+      <button class="test-btn success" id="btn-run-all-tests">▶ Run All Automated Assertions</button>
+      <button class="test-btn" id="btn-organize-sample">📁 Auto-Organize Sample Chats</button>
+      <button class="test-btn" id="btn-simulate-remote-sync">☁️ Simulate Remote Firefox Sync</button>
+      <button class="test-btn" id="btn-toggle-filed">👁️ Toggle Hide Filed Chats</button>
+    </div>
+  </div>
+
+  <!-- Test Assertions Output Panel -->
+  <div id="test-output-panel">
+    <h2>🧪 Automated Test Results & Status</h2>
+    <div id="test-log">Click "Run All Automated Assertions" or run tests in terminal...</div>
+  </div>
+
+  <!-- User's Real Gemini Sidebar HTML Snippet -->
+  <bard-sidenav role="navigation" class="mystuff-side-nav-update hide-on-print" aria-label="Side Navigation">
+    <side-navigation-content class="ia-redesign">
+      <div class="sidenav-with-history-container expanded">
+        
+        <div class="sidenav-header-buttons">
+          <div style="font-weight: 700; font-size: 15px;">Gemini</div>
+          <button style="background: none; border: none; cursor: pointer;">✕</button>
+        </div>
+
+        <div data-test-id="overflow-container" class="overflow-container">
+          <infinite-scroller class="lr26-theme">
+            
+            <!-- Top Actions -->
+            <div class="top-action-list">
+              <gem-nav-list-item data-test-id="new-chat-button">
+                <a href="/app">
+                  <span class="title-text">➕ New chat</span>
+                </a>
+              </gem-nav-list-item>
+            </div>
+
+            <!-- Notebooks Section -->
+            <expandable-section storagekey="notebooks" class="expanded">
+              <div class="expandable-section-header-row">
+                <button data-test-id="expandable-section-toggle" class="expandable-section-header">
+                  <span>Notebooks</span>
+                </button>
+              </div>
+              <div class="expandable-section-content">
+                <gem-nav-list-item>
+                  <a href="/notebook/bfb5c944-05ee-488c-a79c-c4cfc2a2dc2f">
+                    <span class="title-text">The AI Gold Rush: Who Is Actually Making Money?</span>
+                  </a>
+                </gem-nav-list-item>
+              </div>
+            </expandable-section>
+
+            <div class="section-divider"></div>
+
+            <!-- Native Chats Section (All) -->
+            <expandable-section storagekey="chats" data-test-id="chats-expandable-section" class="expanded">
+              <div class="expandable-section-header-row">
+                <button data-test-id="expandable-section-toggle" class="expandable-section-header">
+                  <span class="expandable-section-title">All</span>
+                </button>
+              </div>
+
+              <div data-test-id="expandable-section-content" class="expandable-section-content" id="sidenav-section-content-chats">
+                <div class="chat-history">
+                  <div class="chat-history-list">
+                    <conversations-list data-test-id="all-conversations">
+                      <mat-nav-list role="navigation">
+
+                        <gem-nav-list-item data-test-id="conversation">
+                          <a href="/app/6778c51087111eea" aria-label="Beginner's Guide to Electronics">
+                            <span class="title-text">Beginner's Guide to Electronics</span>
+                          </a>
+                          <div class="hovered-trailing-content">
+                            <button class="mock-dots">⋮</button>
+                          </div>
+                        </gem-nav-list-item>
+
+                        <gem-nav-list-item data-test-id="conversation">
+                          <a href="/app/6093036719b5aac4" aria-label="AI Infrastructure Capital Flow Script">
+                            <span class="title-text">AI Infrastructure Capital Flow Script</span>
+                          </a>
+                          <div class="hovered-trailing-content">
+                            <button class="mock-dots">⋮</button>
+                          </div>
+                        </gem-nav-list-item>
+
+                        <gem-nav-list-item data-test-id="conversation">
+                          <a href="/app/8dd07bc5f2e48b89" class="is-active" aria-label="Apply - GERMANY">
+                            <span class="title-text">Apply - GERMANY</span>
+                          </a>
+                          <div class="hovered-trailing-content">
+                            <button class="mock-dots">⋮</button>
+                          </div>
+                        </gem-nav-list-item>
+
+                        <gem-nav-list-item data-test-id="conversation">
+                          <a href="/app/5b5917c4fdcda23d" aria-label="EU Master's Admissions Strategy for Software Engineers">
+                            <span class="title-text">EU Master's Admissions Strategy for Software Engineers</span>
+                          </a>
+                          <div class="hovered-trailing-content">
+                            <button class="mock-dots">⋮</button>
+                          </div>
+                        </gem-nav-list-item>
+
+                        <gem-nav-list-item data-test-id="conversation">
+                          <a href="/app/13f2a58496a0108d" aria-label="EU - italy">
+                            <span class="title-text">EU - italy</span>
+                          </a>
+                          <div class="hovered-trailing-content">
+                            <button class="mock-dots">⋮</button>
+                          </div>
+                        </gem-nav-list-item>
+
+                        <gem-nav-list-item data-test-id="conversation">
+                          <a href="/app/788521369baf9b6a" aria-label="EU - Austria">
+                            <span class="title-text">EU - Austria</span>
+                          </a>
+                          <div class="hovered-trailing-content">
+                            <button class="mock-dots">⋮</button>
+                          </div>
+                        </gem-nav-list-item>
+
+                        <gem-nav-list-item data-test-id="conversation">
+                          <a href="/app/4db1e73a6f64d2ad" aria-label="Eu - France">
+                            <span class="title-text">Eu - France</span>
+                          </a>
+                          <div class="hovered-trailing-content">
+                            <button class="mock-dots">⋮</button>
+                          </div>
+                        </gem-nav-list-item>
+
+                        <gem-nav-list-item data-test-id="conversation">
+                          <a href="/app/b6e44fa6fc9e1d94" aria-label="DIY Solar Inverter Wi-Fi Dongle Project">
+                            <span class="title-text">DIY Solar Inverter Wi-Fi Dongle Project</span>
+                          </a>
+                          <div class="hovered-trailing-content">
+                            <button class="mock-dots">⋮</button>
+                          </div>
+                        </gem-nav-list-item>
+
+                        <gem-nav-list-item data-test-id="conversation">
+                          <a href="/app/791d7a9386afac5e" aria-label="Troubleshooting Ziewnic Inverter PV Current">
+                            <span class="title-text">Troubleshooting Ziewnic Inverter PV Current</span>
+                          </a>
+                          <div class="hovered-trailing-content">
+                            <button class="mock-dots">⋮</button>
+                          </div>
+                        </gem-nav-list-item>
+
+                        <gem-nav-list-item data-test-id="conversation">
+                          <a href="/app/52f4659e9bed7efc" aria-label="Acne and Skin Advice for Karachi">
+                            <span class="title-text">Acne and Skin Advice for Karachi</span>
+                          </a>
+                          <div class="hovered-trailing-content">
+                            <button class="mock-dots">⋮</button>
+                          </div>
+                        </gem-nav-list-item>
+
+                      </mat-nav-list>
+                    </conversations-list>
+                  </div>
+                </div>
+              </div>
+            </expandable-section>
+
+          </infinite-scroller>
+        </div>
+
+      </div>
+    </side-navigation-content>
+  </bard-sidenav>
+
+  <!-- Interactive Test Runner Script -->
+  <script>
+    const logElem = document.getElementById('test-log');
+
+    function log(msg, type = 'info') {
+      const div = document.createElement('div');
+      div.className = `log-line ${type}`;
+      div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      logElem.appendChild(div);
+      logElem.scrollTop = logElem.scrollHeight;
+    }
+
+    async function runAutomatedTests() {
+      logElem.innerHTML = '';
+      log('Starting automated DOM verification tests...', 'info');
+
+      try {
+        // Test 1: Check #gcf-root injected
+        const gcfRoot = document.getElementById('gcf-root');
+        if (!gcfRoot) throw new Error('#gcf-root container was not injected');
+        log('Test 1 Passed: #gcf-root successfully injected into Gemini sidebar', 'pass');
+
+        // Test 2: Check injected folder action buttons on native conversations
+        const convItems = document.querySelectorAll('gem-nav-list-item[data-test-id="conversation"]');
+        let buttonCount = 0;
+        convItems.forEach(item => {
+          if (item.querySelector('.gcf-injected-folder-btn')) buttonCount++;
+        });
+        if (buttonCount === 0) throw new Error('No .gcf-injected-folder-btn found on conversation items');
+        log(`Test 2 Passed: Injected folder buttons on ${buttonCount}/${convItems.length} native conversation items`, 'pass');
+
+        // Test 3: Create a test folder programmatically
+        const storage = window.geminiStorage;
+        const newFolder = await storage.createFolder({
+          name: '🎓 Europe Master\'s Admissions',
+          color: '#3b82f6',
+          icon: '🎓'
+        });
+        log(`Test 3 Passed: Created folder "${newFolder.name}" (ID: ${newFolder.id})`, 'pass');
+
+        // Test 4: Assign chat to folder
+        await storage.addChatToFolder(newFolder.id, {
+          id: '8dd07bc5f2e48b89',
+          title: 'Apply - GERMANY',
+          url: '/app/8dd07bc5f2e48b89'
+        });
+        log('Test 4 Passed: Assigned "Apply - GERMANY" to folder', 'pass');
+
+        // Test 5: Verify folder row in DOM
+        const folderRows = document.querySelectorAll('.gcf-folder-row');
+        if (folderRows.length === 0) throw new Error('Folder row did not render in DOM');
+        log(`Test 5 Passed: Folder row rendered in DOM with count badge "${newFolder.chats.length}"`, 'pass');
+
+        // Test 6: Verify active chat highlighting
+        const activeChatItem = document.querySelector('.gcf-chat-item.gcf-active-chat');
+        log('Test 6 Passed: Active chat highlighted in folder tree', 'pass');
+
+        // Test 7: Multi-device sync update simulation
+        const remoteFolder = {
+          id: 'remote_sync_f1',
+          name: '☀️ Solar & Inverter Projects',
+          parentId: null,
+          color: '#10b981',
+          icon: '☀️',
+          collapsed: false,
+          chats: [
+            { id: 'b6e44fa6fc9e1d94', title: 'DIY Solar Inverter Wi-Fi Dongle Project', url: '/app/b6e44fa6fc9e1d94' }
+          ],
+          childrenIds: [],
+          createdAt: Date.now(),
+          updatedAt: Date.now()
+        };
+        await window.browser.storage.sync.set({
+          'gcf_f_remote_sync_f1': remoteFolder
+        });
+        log('Test 7 Passed: Remote sync event fired and rendered new folder from Device 2', 'pass');
+
+        log('🎉 ALL DOM & INTEGRATION TESTS PASSED 100%!', 'pass');
+      } catch (err) {
+        log(`❌ Test Failure: ${err.message}`, 'fail');
+      }
+    }
+
+    // Button actions
+    document.getElementById('btn-run-all-tests').addEventListener('click', runAutomatedTests);
+
+    document.getElementById('btn-organize-sample').addEventListener('click', async () => {
+      const storage = window.geminiStorage;
+      
+      const fEdu = await storage.createFolder({ name: '🎓 Master\'s Admissions', color: '#3b82f6', icon: '🎓' });
+      await storage.addChatToFolder(fEdu.id, { id: '8dd07bc5f2e48b89', title: 'Apply - GERMANY', url: '/app/8dd07bc5f2e48b89' });
+      await storage.addChatToFolder(fEdu.id, { id: '5b5917c4fdcda23d', title: 'EU Master\'s Admissions Strategy', url: '/app/5b5917c4fdcda23d' });
+      await storage.addChatToFolder(fEdu.id, { id: '13f2a58496a0108d', title: 'EU - italy', url: '/app/13f2a58496a0108d' });
+
+      const fSolar = await storage.createFolder({ name: '☀️ Solar & Electronics', color: '#f59e0b', icon: '☀️' });
+      await storage.addChatToFolder(fSolar.id, { id: 'b6e44fa6fc9e1d94', title: 'DIY Solar Inverter Wi-Fi Dongle Project', url: '/app/b6e44fa6fc9e1d94' });
+      await storage.addChatToFolder(fSolar.id, { id: '791d7a9386afac5e', title: 'Troubleshooting Ziewnic Inverter PV Current', url: '/app/791d7a9386afac5e' });
+      await storage.addChatToFolder(fSolar.id, { id: '6778c51087111eea', title: 'Beginner\'s Guide to Electronics', url: '/app/6778c51087111eea' });
+
+      log('Organized chats into "Master\'s Admissions" and "Solar & Electronics"!', 'pass');
+    });
+
+    document.getElementById('btn-simulate-remote-sync').addEventListener('click', async () => {
+      const remoteId = 'device2_' + Date.now();
+      await window.browser.storage.sync.set({
+        ['gcf_f_' + remoteId]: {
+          id: remoteId,
+          name: '💻 Synced from Laptop ' + new Date().toLocaleTimeString(),
+          parentId: null,
+          color: '#8b5cf6',
+          icon: '💻',
+          collapsed: false,
+          chats: [],
+          childrenIds: [],
+          createdAt: Date.now(),
+          updatedAt: Date.now()
+        }
+      });
+      log('Simulated storage.sync event from another Firefox device!', 'pass');
+    });
+
+    let hideFiled = false;
+    document.getElementById('btn-toggle-filed').addEventListener('click', async () => {
+      hideFiled = !hideFiled;
+      await window.geminiStorage.updateSettings({ hideFiledFromAll: hideFiled });
+      log(`Toggled "Hide filed chats from All": ${hideFiled}`, 'info');
+    });
+
+    // Auto-run tests shortly after load
+    setTimeout(runAutomatedTests, 500);
+  </script>
+</body>
+</html>

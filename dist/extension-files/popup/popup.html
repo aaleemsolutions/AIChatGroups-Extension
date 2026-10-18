@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gemini Chat Folders</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="popup-header">
+      <div class="brand">
+        <img src="../icons/icon-48.png" alt="Logo" class="brand-icon">
+        <div class="brand-text">
+          <h1>Gemini Folders</h1>
+          <span class="brand-sub">Firefox Sync Active</span>
+        </div>
+      </div>
+      <div class="sync-badge" id="sync-status-badge" title="Multi-device sync via Firefox Sync is active">
+        <span class="sync-dot"></span>
+        <span class="sync-text">Synced</span>
+      </div>
+    </header>
+
+    <!-- Stats Card -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <span class="stat-num" id="stat-folders">0</span>
+        <span class="stat-label">Folders</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num" id="stat-chats">0</span>
+        <span class="stat-label">Organized Chats</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num" id="stat-devices">Sync</span>
+        <span class="stat-label">Multi-Device</span>
+      </div>
+    </div>
+
+    <!-- Quick Search & Actions -->
+    <div class="actions-toolbar">
+      <div class="search-wrap">
+        <input type="text" id="popup-search" placeholder="Search folders or chats..." />
+        <span class="search-icon">🔍</span>
+      </div>
+      <button class="btn btn-primary" id="btn-new-folder">+ New</button>
+    </div>
+
+    <!-- Folder List -->
+    <div class="folders-section-title">
+      <span>Your Folders</span>
+      <span class="sub-link" id="btn-toggle-all">Toggle All</span>
+    </div>
+
+    <div class="folders-scroll-list" id="folders-list">
+      <!-- Populated dynamically -->
+      <div class="loading-state">Loading folders...</div>
+    </div>
+
+    <!-- Settings & Quick Toggles -->
+    <div class="settings-box">
+      <label class="toggle-row">
+        <span class="toggle-label">Hide filed chats from Gemini's flat list</span>
+        <input type="checkbox" id="toggle-hide-filed" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <!-- Footer Actions -->
+    <footer class="popup-footer">
+      <button class="btn btn-secondary btn-sm" id="btn-export-backup" title="Download JSON backup">💾 Export</button>
+      <button class="btn btn-secondary btn-sm" id="btn-import-backup" title="Restore from JSON backup">📥 Import</button>
+      <button class="btn btn-accent btn-sm" id="btn-open-gemini" title="Go to Google Gemini">✨ Open Gemini</button>
+      <input type="file" id="file-import-input" accept=".json" style="display: none;" />
+    </footer>
+  </div>
+
+  <!-- Shared Sync Storage -->
+  <script src="../storage-sync.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

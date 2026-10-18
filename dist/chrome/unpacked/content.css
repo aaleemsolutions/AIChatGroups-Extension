@@ -1,0 +1,737 @@
+/**
+ * Gemini Chat Folders - Styling
+ * Blends seamlessly with Google Gemini's Material 3 design system (Light & Dark themes)
+ */
+
+:root {
+  --gcf-font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;
+  --gcf-bg-folder: rgba(0, 0, 0, 0.03);
+  --gcf-bg-hover: rgba(0, 0, 0, 0.06);
+  --gcf-bg-active: rgba(66, 133, 244, 0.12);
+  --gcf-text-primary: #1f1f1f;
+  --gcf-text-secondary: #5f6368;
+  --gcf-border: rgba(0, 0, 0, 0.08);
+  --gcf-accent: #1a73e8;
+  --gcf-accent-gradient: linear-gradient(135deg, #1a73e8, #8ab4f8);
+  --gcf-radius-sm: 8px;
+  --gcf-radius-md: 12px;
+  --gcf-shadow-dropdown: 0 4px 20px rgba(0, 0, 0, 0.15);
+  --gcf-transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Dark mode overrides (Gemini dark theme detection) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --gcf-bg-folder: rgba(255, 255, 255, 0.04);
+    --gcf-bg-hover: rgba(255, 255, 255, 0.08);
+    --gcf-bg-active: rgba(138, 180, 248, 0.18);
+    --gcf-text-primary: #e3e3e3;
+    --gcf-text-secondary: #9aa0a6;
+    --gcf-border: rgba(255, 255, 255, 0.1);
+    --gcf-accent: #8ab4f8;
+    --gcf-accent-gradient: linear-gradient(135deg, #8ab4f8, #c58af9);
+    --gcf-shadow-dropdown: 0 4px 24px rgba(0, 0, 0, 0.5);
+  }
+}
+
+body.dark-theme,
+[data-theme="dark"],
+.dark {
+  --gcf-bg-folder: rgba(255, 255, 255, 0.04);
+  --gcf-bg-hover: rgba(255, 255, 255, 0.08);
+  --gcf-bg-active: rgba(138, 180, 248, 0.18);
+  --gcf-text-primary: #e3e3e3;
+  --gcf-text-secondary: #9aa0a6;
+  --gcf-border: rgba(255, 255, 255, 0.1);
+  --gcf-accent: #8ab4f8;
+  --gcf-accent-gradient: linear-gradient(135deg, #8ab4f8, #c58af9);
+}
+
+/* ===================================================
+   Main Folders Section Container
+   =================================================== */
+
+#gcf-root {
+  font-family: var(--gcf-font-family);
+  margin: 4px 8px 12px 8px;
+  padding: 0;
+  border-radius: var(--gcf-radius-md);
+  user-select: none;
+  position: relative;
+  transition: var(--gcf-transition);
+}
+
+.gcf-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: var(--gcf-radius-sm);
+  cursor: pointer;
+  transition: var(--gcf-transition);
+}
+
+.gcf-section-header:hover {
+  background-color: var(--gcf-bg-hover);
+}
+
+.gcf-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.gcf-section-chevron {
+  font-size: 11px;
+  color: var(--gcf-text-secondary);
+  transition: transform 0.2s ease;
+  display: inline-block;
+  width: 14px;
+  text-align: center;
+}
+
+.gcf-collapsed .gcf-section-chevron {
+  transform: rotate(-90deg);
+}
+
+.gcf-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: var(--gcf-text-primary);
+}
+
+.gcf-sync-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+  font-weight: 500;
+}
+
+.gcf-sync-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
+  display: inline-block;
+}
+
+.gcf-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.gcf-icon-btn {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--gcf-text-secondary);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--gcf-transition);
+  padding: 0;
+}
+
+.gcf-icon-btn:hover {
+  background-color: var(--gcf-bg-hover);
+  color: var(--gcf-text-primary);
+  transform: scale(1.05);
+}
+
+/* Search Bar */
+.gcf-search-container {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px 8px 8px;
+  position: relative;
+}
+
+.gcf-search-input {
+  width: 100%;
+  padding: 6px 28px 6px 10px;
+  font-size: 12px;
+  border-radius: 16px;
+  border: 1px solid var(--gcf-border);
+  background-color: var(--gcf-bg-folder);
+  color: var(--gcf-text-primary);
+  outline: none;
+  transition: var(--gcf-transition);
+}
+
+.gcf-search-input:focus {
+  border-color: var(--gcf-accent);
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+}
+
+.gcf-search-clear {
+  position: absolute;
+  right: 14px;
+  background: none;
+  border: none;
+  color: var(--gcf-text-secondary);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 2px 4px;
+  border-radius: 50%;
+}
+
+.gcf-search-clear:hover {
+  color: var(--gcf-text-primary);
+}
+
+/* ===================================================
+   Folders Tree & Rows
+   =================================================== */
+
+.gcf-folders-body {
+  margin-top: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 480px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 2px;
+  scrollbar-width: thin;
+}
+
+.gcf-folders-body::-webkit-scrollbar {
+  width: 4px;
+}
+.gcf-folders-body::-webkit-scrollbar-thumb {
+  background: var(--gcf-border);
+  border-radius: 4px;
+}
+
+/* Empty State */
+.gcf-empty-state {
+  padding: 14px 10px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--gcf-text-secondary);
+  background: var(--gcf-bg-folder);
+  border-radius: var(--gcf-radius-sm);
+  margin: 4px 0;
+}
+
+.gcf-empty-btn {
+  margin-top: 6px;
+  padding: 4px 12px;
+  background: var(--gcf-accent);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 11px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: var(--gcf-transition);
+}
+.gcf-empty-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* Folder Row */
+.gcf-folder-row {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--gcf-radius-sm);
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+}
+
+.gcf-folder-row.gcf-drag-over {
+  background-color: var(--gcf-bg-active) !important;
+  outline: 2px dashed var(--gcf-accent) !important;
+  outline-offset: -1px;
+  box-shadow: 0 0 10px rgba(26, 115, 232, 0.25);
+}
+
+.gcf-folder-row.gcf-drag-over > .gcf-folder-header {
+  background-color: transparent !important;
+}
+
+.gcf-folder-header {
+  display: flex;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: var(--gcf-radius-sm);
+  cursor: pointer;
+  transition: var(--gcf-transition);
+  position: relative;
+}
+
+.gcf-folder-header:hover {
+  background-color: var(--gcf-bg-hover);
+}
+
+.gcf-folder-collapse-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gcf-text-secondary);
+  font-size: 9px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.gcf-folder-row.is-collapsed .gcf-folder-collapse-btn {
+  transform: rotate(-90deg);
+}
+
+.gcf-folder-icon-wrapper {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  margin-right: 8px;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.gcf-folder-header:hover .gcf-folder-icon-wrapper {
+  transform: scale(1.1);
+}
+
+.gcf-folder-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gcf-text-primary);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 6px;
+}
+
+.gcf-folder-count {
+  font-size: 11px;
+  color: var(--gcf-text-secondary);
+  background: var(--gcf-bg-folder);
+  padding: 1px 6px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  font-weight: 500;
+}
+
+.gcf-folder-hover-actions {
+  display: none;
+  align-items: center;
+  gap: 2px;
+  margin-left: 4px;
+}
+
+.gcf-folder-header:hover .gcf-folder-hover-actions {
+  display: flex;
+}
+
+.gcf-mini-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--gcf-text-secondary);
+  font-size: 12px;
+  transition: var(--gcf-transition);
+}
+
+.gcf-mini-btn:hover {
+  background-color: var(--gcf-bg-hover);
+  color: var(--gcf-text-primary);
+}
+
+/* ===================================================
+   Nested Children & Subfolders
+   =================================================== */
+
+.gcf-folder-children {
+  display: flex;
+  flex-direction: column;
+  padding-left: 14px;
+  margin-left: 8px;
+  border-left: 1.5px solid var(--gcf-border);
+  gap: 1px;
+  margin-top: 1px;
+  margin-bottom: 3px;
+  min-height: 8px;
+  transition: var(--gcf-transition);
+}
+
+.gcf-folder-empty-zone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 8px;
+  font-size: 11px;
+  color: var(--gcf-text-secondary);
+  border: 1px dashed var(--gcf-border);
+  border-radius: var(--gcf-radius-sm);
+  margin: 3px 6px;
+  background: rgba(0, 0, 0, 0.015);
+  pointer-events: none;
+  transition: var(--gcf-transition);
+}
+
+.gcf-folder-row.gcf-drag-over .gcf-folder-empty-zone {
+  border-color: var(--gcf-accent);
+  color: var(--gcf-accent);
+  background: rgba(26, 115, 232, 0.08);
+}
+
+.gcf-folder-row.is-collapsed > .gcf-folder-children {
+  display: none !important;
+}
+
+/* ===================================================
+   Chats Inside Folders
+   =================================================== */
+
+.gcf-chat-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--gcf-text-primary);
+  font-size: 12.5px;
+  transition: var(--gcf-transition);
+  cursor: pointer;
+  position: relative;
+}
+
+.gcf-chat-item:hover {
+  background-color: var(--gcf-bg-hover);
+}
+
+.gcf-chat-item.gcf-active-chat {
+  background-color: var(--gcf-bg-active);
+  color: var(--gcf-accent);
+  font-weight: 500;
+}
+
+.gcf-chat-link {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 1;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+.gcf-chat-bullet {
+  font-size: 9px;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.gcf-chat-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.gcf-chat-actions {
+  display: none;
+  align-items: center;
+  gap: 2px;
+  margin-left: 4px;
+}
+
+.gcf-chat-item:hover .gcf-chat-actions {
+  display: flex;
+}
+
+.gcf-chat-item.gcf-drag-over {
+  border-top: 2px solid var(--gcf-accent);
+}
+
+/* ===================================================
+   Injected Folder Button on Native Gemini Chat Items
+   =================================================== */
+
+.gcf-injected-folder-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--gcf-text-secondary);
+  font-size: 13px;
+  margin-right: 2px;
+  transition: var(--gcf-transition);
+}
+
+.gcf-injected-folder-btn:hover {
+  background-color: var(--gcf-bg-hover);
+  color: var(--gcf-text-primary);
+  transform: scale(1.15);
+}
+
+.gcf-injected-folder-btn.is-filed {
+  color: var(--gcf-accent);
+}
+
+/* Filed Chats Hidden mode in native 'All' list */
+gem-nav-list-item.gcf-filed-hidden {
+  display: none !important;
+}
+
+/* ===================================================
+   Dropdown / Context Menu Modal
+   =================================================== */
+
+.gcf-dropdown-menu {
+  position: fixed;
+  z-index: 10000;
+  background-color: #ffffff;
+  border: 1px solid var(--gcf-border);
+  box-shadow: var(--gcf-shadow-dropdown);
+  border-radius: var(--gcf-radius-md);
+  padding: 6px;
+  min-width: 200px;
+  max-width: 280px;
+  font-family: var(--gcf-font-family);
+  animation: gcfFadeIn 0.15s ease-out;
+}
+
+@media (prefers-color-scheme: dark) {
+  .gcf-dropdown-menu {
+    background-color: #282a2c;
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+}
+
+body.dark-theme .gcf-dropdown-menu {
+  background-color: #282a2c;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.gcf-menu-header {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--gcf-text-secondary);
+  padding: 6px 10px 4px 10px;
+}
+
+.gcf-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  color: var(--gcf-text-primary);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.gcf-menu-item:hover {
+  background-color: var(--gcf-bg-hover);
+}
+
+.gcf-menu-item.danger {
+  color: #ef4444;
+}
+
+.gcf-menu-item.active {
+  background-color: var(--gcf-bg-active);
+  font-weight: 500;
+  color: var(--gcf-accent);
+}
+
+.gcf-menu-divider {
+  height: 1px;
+  background-color: var(--gcf-border);
+  margin: 4px 0;
+}
+
+/* Color & Icon Picker Grid */
+.gcf-color-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  padding: 6px 10px;
+}
+
+.gcf-color-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  border: 2px solid transparent;
+}
+.gcf-color-swatch:hover {
+  transform: scale(1.2);
+}
+.gcf-color-swatch.selected {
+  border-color: var(--gcf-text-primary);
+}
+
+.gcf-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  padding: 6px 10px;
+}
+
+.gcf-icon-swatch {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background-color 0.15s ease;
+}
+.gcf-icon-swatch:hover {
+  background-color: var(--gcf-bg-hover);
+}
+.gcf-icon-swatch.selected {
+  background-color: var(--gcf-bg-active);
+}
+
+/* Dialog Overlay */
+.gcf-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: gcfFadeIn 0.2s ease;
+}
+
+.gcf-modal-box {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+  width: 340px;
+  max-width: 90vw;
+  padding: 20px;
+  font-family: var(--gcf-font-family);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .gcf-modal-box {
+    background: #1e1f20;
+    color: #e3e3e3;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+body.dark-theme .gcf-modal-box {
+  background: #1e1f20;
+  color: #e3e3e3;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gcf-modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--gcf-text-primary);
+}
+
+.gcf-input-field {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--gcf-border);
+  background: var(--gcf-bg-folder);
+  color: var(--gcf-text-primary);
+  font-size: 14px;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.gcf-input-field:focus {
+  border-color: var(--gcf-accent);
+}
+
+.gcf-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.gcf-btn-secondary {
+  background: transparent;
+  border: 1px solid var(--gcf-border);
+  color: var(--gcf-text-primary);
+  padding: 8px 16px;
+  border-radius: 18px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.gcf-btn-primary {
+  background: var(--gcf-accent);
+  border: none;
+  color: white;
+  padding: 8px 18px;
+  border-radius: 18px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.gcf-btn-primary:hover {
+  opacity: 0.9;
+}
+
+@keyframes gcfFadeIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
